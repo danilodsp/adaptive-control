@@ -1,7 +1,7 @@
 % Federal University of Rio Grande do Norte
-% Title: Pole Placement Control
+% Title: Adaptive Pole Placement Control
 % Author: Danilo Pena
-% Description: Pole placement control with a serie-parallel model
+% Description: APPC with a first order plant
 
 clear
 close all
@@ -27,15 +27,11 @@ de = 0;
 b = 1;
 a = -1;
 am = 1;
-a_ch = -1.1;
-b_ch = 0.9;
+a_ch = -1;
+b_ch = 1;
 u = 0;
-gama1 = 1;
-gama2 = 1;
-b0 = 0.1;
-e0 = 0;
-a_tio = a_ch - a;
-b_tio = b_ch - b;
+gama1 = 5;
+gama2 = 5;
 
 % Controller parameter
 % Characteristic Polynomial: A(s)=(s+1)^2
@@ -43,6 +39,9 @@ b_tio = b_ch - b;
 %% Loop
 
 for  k=1:n
+    if b_ch==0
+        b_ch = 0.1;
+    end
 
     % Plant  =>  b/(s+a)
     dy = -a*y + b*u;
@@ -52,43 +51,41 @@ for  k=1:n
     y_o(k) = y;
     
     % Control Law
-    u = -k*y + r;
-    k_ch = (a_ch+am)/b_ch;
+    p1 = (2-a_ch)/b_ch;
+    p0 = 1/b_ch;
     
-    % Serie-parallel model
-    de0 = -am*e0 - a_tio*y - b_tio*u;
-    e0 = de0*h + e0;
-    e0_o(k) = e0;
+    du = p1*de + p0*e;
+    u = du*h + u;
+    u_o(k) = u;
     
-    %a_tio = a_ch - a;
-    %b_tio = b_ch - b;
-    
-    da_tio = gama1*e0*y;
-    a_tio = da_tio*h + a_tio;
-    
-    if abs(b_ch)>b0 
-        %if abs(b_ch)= b0 && sgn(b_ch)*e0*u>=0
-        db_tio = gama2*e0*u;
-    else 
-        db_tio = 0;
-    end
-    
-    b_tio = db_tio*h + b_tio;
-    
-    a_ch = a_tio + a;
-    b_ch = b_tio + b;
-     
     % Error
     e = r - y;
     e_o(k) = e;  
     
-    if(k>1)
+    if (k>1)
         de = (e-e_o(k-1))/h;
     else
         de = (e-0)/h;     
     end
+    de_o(k) = de;
     
-    de_o(k)=de;
+    % Estimation
+    dy_ch = -a_ch*y_ch + b_ch*u;
+    dy_ch_o(k) = dy_ch;
+    
+    y_ch = dy_ch*h + y_ch;
+    y_ch_o(k) = y_ch;
+    
+    % Estimation error
+    e0 = y - y_ch;
+    
+    % Adaptive Law
+    da_ch = - gama1*e0*y;
+    a_ch = da_ch*h + a_ch;
+    
+    db_ch = gama2*e0*u;
+    b_ch = db_ch*h + b_ch;
+    
     t_o(k) = k*h;
 end
 
