@@ -43,7 +43,7 @@ sigma = 1;
 L = 0.000005;
 mi = 0;
 
-%% Loops
+%% Loop
 
 for  k=1:n
 
