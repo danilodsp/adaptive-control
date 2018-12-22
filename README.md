@@ -10,7 +10,13 @@ Matlab version R2014a
 
 ## Running the tests
 
-Directory: /code/examples
+### Simulation
+
+Directory: /code/main.m
+
+### Examples
+
+Directory: /code/examples/
 
 ## Author
 
